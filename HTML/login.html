@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script>
+            $("document").ready(function(){
+                $("#login").click(function(){
+                    verificaUtente();
+                })
+            });
+
+            function verificaUtente(){
+                let username = $("#user").val();
+                let password = $("#psw").val();
+
+                $.ajax({
+                    type: "POST",
+                    url: "../PHP/login.php",
+                    data: {user: username, psw: password},
+                    success: function(response){
+                        if(response["status"] == "200"){
+                            window.location.href = "areaPersonale.html";
+                        }
+                        else{
+                            alert(response["status"] + "; " + response["message"]);
+                        }
+                    }
+                });
+            }
+        </script>
+    </head>
+    <body>
+        username: <input type="text" id="user"><br>
+        password: <input type="password" id="psw"><br>
+        <button id="login">Login</button>
+    </body>
+</html>

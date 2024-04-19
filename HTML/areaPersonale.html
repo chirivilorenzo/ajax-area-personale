@@ -1,0 +1,143 @@
+<html>
+    <head>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <link rel="stylesheet" href="../CSS/style_areaPersonale.css">
+        <script src="../JS/verificaAutenticato.js"></script>
+        <script src="../JS/logout.js"></script>
+        <script src="../JS/salvaInfo.js"></script>
+        <script src="../JS/jquery.qrcode.min.js"></script>
+        <script>
+            $("document").ready(function(){
+
+                creaQRcode();
+
+                $("#logout").click(function(){
+                    logout();
+                });
+
+                $("#salva").click(function(){
+                    salvaInfo();
+                });
+
+                $("#regione").change(function(){
+
+                    let regioneSelezionata = $(this).val();
+                    popolaProvince(regioneSelezionata);
+                    $("#citta").empty();
+                });
+
+                $("#provincia").change(function(){
+
+                    let provinciaSelezionata = $(this).val();
+                    popolaCitta(provinciaSelezionata);
+                });
+                verificaAutenticato();
+            });
+
+            function creaQRcode(){
+
+                //funzione ajax per prendere la stringa dell'utente
+                $.ajax({
+                    type: "POST",
+                    url: "../PHP/getToken.php",
+                    success: function(response){
+                        if(response["status"] == "200"){
+                            $("#qrcode").qrcode({
+                                width: 100,
+                                height: 100,
+                                text: "addImage.php?token=" + response["token"]
+                            });
+                        }
+                        else{
+                            alert(response["status"] + ": " + response["message"]);
+                        }
+                    }
+                });
+            }
+
+            function visualizzaTutto(){
+                $("#all").css("display", "block");
+
+                caricaImmagineDB();
+                popolaRegioni();
+            }
+
+            function caricaImmagineDB(){
+                $.ajax({
+                    type: "POST",
+                    url: "../PHP/getImage.php",
+                    success: function(response){
+                        if(response["status"] == "200"){
+                            $("#image").attr("src", "data:image/png;base64," + response["imageData"]);
+                        }
+                        else{
+                            console.error(response["status"] + ": " + response["message"]);
+                        }
+                    }
+                });
+            }
+
+            function popolaRegioni(){
+                $("#regione").empty();
+                $.get("../PHP/getRegioni.php", {}, function(data){
+                    
+                    let optionDOM = "";
+                    for(let i = 0; i < data.length; i++){
+
+                        if(i == 0){
+                            let optionDOM1 = $("<option selected>Seleziona</option>");
+                            $("#regione").append(optionDOM1);
+                        }
+
+                        optionDOM = $("<option>" + data[i]["denominazione_regione"] +"</option>");
+                        $("#regione").append(optionDOM);
+                    }
+                });
+            }
+
+            function popolaProvince(regione){
+                $("#provincia").empty();
+                $.get("../PHP/getProvince.php", {regione: regione}, function(data){
+                    
+                    let optionDOM = "";
+                    for(let i = 0; i < data.length; i++){
+
+                        optionDOM = $("<option>" + data[i]["denominazione_provincia"] +"</option>");
+                        $("#provincia").append(optionDOM);
+                    }
+                });
+            }
+
+            function popolaCitta(provincia){
+                $("#citta").empty();
+                $.get("../PHP/getCitta.php", {provincia: provincia}, function(data){
+                    
+                    let optionDOM = "";
+                    for(let i = 0; i < data.length; i++){
+
+                        optionDOM = $("<option>" + data[i]["denominazione_ita"] +"</option>");
+                        $("#citta").append(optionDOM);
+                    }
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <div id="all">
+            <div id="qrcode"></div><br>
+            nome: <input type="text" id="nome"><br>
+            cognome: <input type="text" id="cognome"><br>
+            data di nascita: <input type="date" id="dataNascita"><br><br>
+
+            citta di residenza:<br>
+            regione: <select id="regione"></select><br>
+            provincia: <select id="provincia"></select><br>
+            citta: <select id="citta"></select><br><br>
+
+            <button id="salva">salva</button>
+            <button id="logout">logout</button><br><br><br><br>
+
+            <img id="image">
+        </div>
+    </body>
+</html>

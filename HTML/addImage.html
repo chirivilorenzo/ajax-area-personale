@@ -1,0 +1,66 @@
+<html>
+    <head>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script>
+            $("document").ready(function(){
+                $("#all").hide();
+                verificaToken();
+
+                $("#carica").click(function(){
+                    caricaImmagineDB();
+                });
+            });
+
+            function verificaToken(){
+    		    const queryString = window.location.search;
+		        const urlParams = new URLSearchParams(queryString);
+    		    let token = urlParams.get("token");
+
+                $.ajax({
+                    type: "POST",
+                    url: "../PHP/verificaToken.php",
+                    data: {token: token},
+                    success: function(response){
+                        if(response["status"] == "200"){
+                            visualizzaTutto();
+                        }
+                        else{
+                            alert(response["status"] + ": " + response["message"]);
+                        }
+                    }
+                });
+            }
+
+            function visualizzaTutto(){
+                $("#all").show();
+            }
+
+            function caricaImmagineDB(){
+                var formData = new FormData();
+                formData.append('image', $('#immagine')[0].files[0]);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '../PHP/uploadImage.php',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if(response["status"] == "200"){
+                            alert("immagine caricata con successo");
+                        }
+                        else{
+                            alert(response["status"] + ": " + response["message"]);
+                        }
+                    }
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <div id="all">
+            carica foto profilo: <input type="file" id="immagine" accept="image/*"><br>
+            <button id="carica">carica</button>
+        </div>
+    </body>
+</html>
